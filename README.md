@@ -95,5 +95,6 @@ Auto-tests dans le navigateur : ouvrir `studyapp.html#selftest`.
 
 ## Encore à faire
 
-Génération des **150 cartes définitives** (3 × 50) et livraison des 3 fichiers `.md`
-séparés. Ils remplaceront les sources d'exemple embarquées sans modification du code.
+Commencez par générer vos **10 premières cartes** en suivant correctement la forme ci-dessus dans le format `.md`
+. Ils remplaceront les sources d'exemple embarquées sans modification du code. 
+Enjoy la plateforme ! 
