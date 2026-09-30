@@ -1,7 +1,7 @@
-# StudyApp
+# Bienvenu sur StudyApp
 
 Application mono-fichier d'apprentissage de vocabulaire par **rappel actif** (Leitner + SM-2 allégé).
-Aucune installation, aucun serveur, aucune dépendance réseau. Sa méthode de fonctionnement est issue de travaux sur la mémorisation que vous trouverez dans la partie 'recherche.md'
+Aucune installation, aucun serveur, aucune dépendance réseau. Sa méthode de fonctionnement est issue de travaux sur la mémorisation que vous trouverez dans la partie https://github.com/tpoujon/StudyApp/blob/main/RESEARCH.md.
 
 ## Ouvrir
 
