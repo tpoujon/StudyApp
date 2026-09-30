@@ -15,14 +15,14 @@ d'exemple déjà chargés (Business English, Tech & AI, IELTS Speaking, 5 cartes
 
 Sur l'écran d'accueil, section **« Ajouter un deck »** — trois voies équivalentes :
 
-- **glisser-déposer** un fichier `.mkd` sur la zone pointillée ;
+- **glisser-déposer** un fichier `.md` sur la zone pointillée ;
 - le **sélectionner** via le bouton de fichier ;
 - **coller** son texte dans la zone prévue puis « Importer le texte collé ».
 
 Le deck importé est enregistré localement et rejoint la liste. Un rapport d'import s'affiche
 (`N cartes importées, M lignes ignorées` + détail des lignes ignorées).
 
-### Format `.mkd`
+### Format `.md`
 
 ```
 # Nom de la section
@@ -69,7 +69,7 @@ Sur l'écran d'un deck, section **« Données & progression »** :
 
 - **Exporter la progression (JSON)** — télécharge un fichier de sauvegarde.
 - **Importer la progression** — réinjecte un tel fichier (fusion par carte).
-- **Exporter le .mkd** — récupère la source du deck pour l'éditer puis la réimporter.
+- **Exporter le .md** — récupère la source du deck pour l'éditer puis la réimporter.
 - **Réinitialiser ce deck** — efface la progression (confirmation requise).
 
 L'identifiant d'un deck est un hash de l'ensemble de ses termes : renommer le deck ou une
@@ -95,5 +95,5 @@ Auto-tests dans le navigateur : ouvrir `studyapp.html#selftest`.
 
 ## Encore à faire
 
-Génération des **150 cartes définitives** (3 × 50) et livraison des 3 fichiers `.mkd`
+Génération des **150 cartes définitives** (3 × 50) et livraison des 3 fichiers `.md`
 séparés. Ils remplaceront les sources d'exemple embarquées sans modification du code.
