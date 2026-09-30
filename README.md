@@ -5,6 +5,7 @@ Aucune installation, aucun serveur, aucune dépendance réseau. Sa méthode de f
 
 ## Ouvrir
 
+Pour un test en ligne sans téléchagement essayez à l'adresse suivante ! https://tpoujon.github.io/StudyApp/
 Double-cliquez **`studyapp.html`**. C'est tout — l'app s'ouvre en `file://` avec 3 decks
 d'exemple déjà chargés (Business English, Tech & AI, IELTS Speaking, 5 cartes chacun pour l'instant).
 
