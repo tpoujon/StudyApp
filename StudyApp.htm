@@ -1,0 +1,1947 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StudyApp</title>
+<style>
+/* ============================== THEME / RESET ============================== */
+:root{
+  --bg:#fbfaf8; --panel:#ffffff; --fg:#1d1c1a; --muted:#6b6862; --line:#e5e1d8;
+  --accent:#2f6f9f; --accent-fg:#ffffff;
+  --ok:#2e7d5b; --bad:#b23b3b; --warn:#a8791f; --new:#8a8fbe; --learn:#c8923a; --master:#2e7d5b; --revoir:#b23b3b;
+  --radius:10px; --maxw:660px;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#161514; --panel:#201f1d; --fg:#ececea; --muted:#9a968d; --line:#34322e;
+    --accent:#5aa0cf; --accent-fg:#0b1a24;
+    --ok:#4bbd8c; --bad:#e07a7a; --warn:#d3a44f; --new:#9aa0d6; --learn:#d9a24f; --master:#4bbd8c; --revoir:#e07a7a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#161514; --panel:#201f1d; --fg:#ececea; --muted:#9a968d; --line:#34322e;
+  --accent:#5aa0cf; --accent-fg:#0b1a24;
+  --ok:#4bbd8c; --bad:#e07a7a; --warn:#d3a44f; --new:#9aa0d6; --learn:#d9a24f; --master:#4bbd8c; --revoir:#e07a7a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.5;font-size:16px}
+#app{max-width:var(--maxw);margin:0 auto;padding:20px 16px 80px}
+h1,h2,h3{font-weight:600;line-height:1.25;margin:0 0 .4em}
+h1{font-size:1.4rem}
+h2{font-size:1.15rem}
+p{margin:0 0 .8em}
+a{color:var(--accent)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;border:1px solid var(--line);
+  background:var(--panel);border-radius:var(--radius);padding:.55em .9em;transition:border-color .12s}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.card-panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:0 0 14px}
+label{display:block;font-size:.85rem;color:var(--muted);margin:0 0 4px}
+select,input[type=text],input[type=number],textarea{
+  font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:.5em .6em;width:100%}
+textarea{min-height:120px;font-family:var(--mono);font-size:.9rem}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+hr{border:none;border-top:1px solid var(--line);margin:16px 0}
+
+/* deck list */
+.deck{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel);
+  border-radius:var(--radius);padding:14px;margin:0 0 10px}
+.deck:hover{border-color:var(--accent)}
+.seg{display:flex;height:8px;border-radius:6px;overflow:hidden;margin:10px 0 6px;background:var(--line)}
+.seg i{display:block}
+.seg .s-new{background:var(--new)} .seg .s-learn{background:var(--learn)}
+.seg .s-master{background:var(--master)} .seg .s-revoir{background:var(--revoir)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+/* dropzone */
+.drop{border:1.5px dashed var(--line);border-radius:var(--radius);padding:22px;text-align:center;color:var(--muted)}
+.drop.hot{border-color:var(--accent);color:var(--fg)}
+
+/* session */
+.session-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.9rem;color:var(--muted)}
+.progressbar{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:18px}
+.progressbar i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.study{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:26px 20px;min-height:200px;
+  display:flex;flex-direction:column;justify-content:center}
+.prompt-kicker{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.prompt-main{font-size:1.35rem;font-weight:500}
+.prompt-def{font-size:1.15rem}
+.example{font-size:1.05rem;margin-top:14px}
+.blank{display:inline-block;min-width:70px;border-bottom:2px solid var(--accent);text-align:center;font-weight:600}
+.answers{display:grid;gap:8px;margin-top:16px}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.7em .8em}
+.opt:hover{border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.opt.correct{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.feedback{margin-top:16px;padding:12px;border-radius:8px;border:1px solid var(--line)}
+.feedback.ok{border-color:var(--ok)} .feedback.almost{border-color:var(--warn)} .feedback.bad{border-color:var(--bad)}
+.fb-tag{font-weight:600}
+.fb-tag.ok{color:var(--ok)} .fb-tag.almost{color:var(--warn)} .fb-tag.bad{color:var(--bad)}
+.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.kbd{font-family:var(--mono);font-size:.8rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px}
+.hint{margin-top:14px;font-size:.8rem;color:var(--muted)}
+
+/* match */
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.match-col{display:grid;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:.6em .7em;text-align:left;font-size:.95rem}
+.chip:hover{border-color:var(--accent)}
+.chip.sel{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.chip.done{opacity:.35;pointer-events:none}
+.chip.err{border-color:var(--bad)}
+
+/* stats */
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+.stat b{display:block;font-size:1.5rem;font-weight:600}
+.bars{display:grid;gap:6px}
+.bars .b{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:.85rem}
+.bars .track{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bars .track i{display:block;height:100%;background:var(--accent)}
+svg.spark{display:block;width:100%;height:90px;overflow:visible}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;max-width:520px;width:100%;max-height:85vh;overflow:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);
+  border-radius:8px;padding:.6em 1em;font-size:.9rem;z-index:60;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.warnlist{font-family:var(--mono);font-size:.8rem;max-height:180px;overflow:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+@media (max-width:520px){ .grade{grid-template-columns:1fr} .match-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div id="app"><div><div class="spread"><h1>StudyApp</h1><div class="row"><button class="btn ghost small" title="Thème">Thème : system</button></div></div><p class="muted small">Rappel actif d’abord : chaque carte se termine par une auto-évaluation ou une saisie, jamais par une simple relecture.</p><button class="deck"><div class="spread"><strong>Business English</strong><span class="small muted">5 cartes</span></div><div class="seg"><i class="s-new" style="width: 100%;"></i><i class="s-learn" style="width: 0%;"></i><i class="s-master" style="width: 0%;"></i><i class="s-revoir" style="width: 0%;"></i></div><div class="legend"><span><i class="s-new" style="background: var(--new);"></i>nouvelles 5</span><span><i style="background: var(--learn);"></i>en cours 0</span><span><i style="background: var(--master);"></i>acquises 0</span><span><i style="background: var(--revoir);"></i>à revoir 0</span></div><div class="small muted" style="margin-top: 6px;">Dernière session : —</div></button><button class="deck"><div class="spread"><strong>Tech &amp; AI</strong><span class="small muted">5 cartes</span></div><div class="seg"><i class="s-new" style="width: 100%;"></i><i class="s-learn" style="width: 0%;"></i><i class="s-master" style="width: 0%;"></i><i class="s-revoir" style="width: 0%;"></i></div><div class="legend"><span><i class="s-new" style="background: var(--new);"></i>nouvelles 5</span><span><i style="background: var(--learn);"></i>en cours 0</span><span><i style="background: var(--master);"></i>acquises 0</span><span><i style="background: var(--revoir);"></i>à revoir 0</span></div><div class="small muted" style="margin-top: 6px;">Dernière session : —</div></button><button class="deck"><div class="spread"><strong>IELTS Speaking</strong><span class="small muted">5 cartes</span></div><div class="seg"><i class="s-new" style="width: 100%;"></i><i class="s-learn" style="width: 0%;"></i><i class="s-master" style="width: 0%;"></i><i class="s-revoir" style="width: 0%;"></i></div><div class="legend"><span><i class="s-new" style="background: var(--new);"></i>nouvelles 5</span><span><i style="background: var(--learn);"></i>en cours 0</span><span><i style="background: var(--master);"></i>acquises 0</span><span><i style="background: var(--revoir);"></i>à revoir 0</span></div><div class="small muted" style="margin-top: 6px;">Dernière session : —</div></button><button class="deck"><div class="spread"><strong>deck-hec-list1-admin-hr</strong><span class="small muted">12 cartes</span></div><div class="seg"><i class="s-new" style="width: 0%;"></i><i class="s-learn" style="width: 100%;"></i><i class="s-master" style="width: 0%;"></i><i class="s-revoir" style="width: 0%;"></i></div><div class="legend"><span><i class="s-new" style="background: var(--new);"></i>nouvelles 0</span><span><i style="background: var(--learn);"></i>en cours 12</span><span><i style="background: var(--master);"></i>acquises 0</span><span><i style="background: var(--revoir);"></i>à revoir 0</span></div><div class="small muted" style="margin-top: 6px;">Dernière session : 2026-08-31</div></button><hr><div class="card-panel"><h2>Ajouter un deck</h2><div class="drop">Glissez un fichier .mkd ici, ou<input type="file" accept=".mkd,.md,.txt,text/plain" style="display: block; margin: 10px auto;"></div><p class="small muted" style="margin: 12px 0px 4px;">ou collez le texte d’un deck :</p><textarea id="paste" placeholder="# Ma section
+- word : definition | Sentence using the ___ in context."></textarea><div class="row" style="margin-top: 8px;"><button class="btn">Importer le texte collé</button></div></div></div></div>
+<script>
+'use strict';
+var IS_BROWSER = (typeof document !== 'undefined') && (typeof window !== 'undefined');
+
+/* ================================================================== */
+/* PARSER                                                              */
+/* ================================================================== */
+
+function normalizeText(s){
+  return String(s == null ? '' : s)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+// FNV-1a 32-bit -> base36 string. No dependency, stable across runs.
+function hashStr(str){
+  str = String(str == null ? '' : str);
+  var h = 0x811c9dc5;
+  for (var i = 0; i < str.length; i++){
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(36);
+}
+
+function cardId(term){ return hashStr(normalizeText(term)); }
+
+// Deck identity = hash of the sorted set of normalized terms only.
+// Renaming the deck file or a "# Section" does NOT change it.
+function hashDeckId(cards){
+  var terms = cards.map(function(c){ return normalizeText(c.term); }).sort();
+  return hashStr(terms.join(''));
+}
+
+// parseDeck(text) -> { cards, categories, warnings }. Never throws.
+function parseDeck(text){
+  var cards = [];
+  var categories = [];
+  var warnings = [];
+  var seen = Object.create(null);
+  var lines = String(text == null ? '' : text).split(/\r?\n/);
+  var category = null;
+
+  for (var i = 0; i < lines.length; i++){
+    var lineNo = i + 1;
+    var raw = lines[i];
+    try {
+      var line = raw.replace(/\t/g, ' ');
+      var trimmed = line.trim();
+
+      if (trimmed === '') continue;                          // blank line: silently ignored
+
+      if (trimmed.charAt(0) === '#'){
+        var name = trimmed.replace(/^#+/, '').trim();
+        if (name){
+          category = name;
+          if (categories.indexOf(name) === -1) categories.push(name);
+        } else {
+          warnings.push({ lineNo: lineNo, raw: raw, reason: 'Titre de section vide' });
+        }
+        continue;
+      }
+
+      if (trimmed.indexOf('//') === 0){
+        warnings.push({ lineNo: lineNo, raw: raw, reason: 'Commentaire ignoré' });
+        continue;
+      }
+
+      if (!/^[-*]\s+/.test(trimmed)){
+        warnings.push({ lineNo: lineNo, raw: raw, reason: 'Ligne hors format (ni "# " ni "- ")' });
+        continue;
+      }
+
+      var body = trimmed.replace(/^[-*]\s+/, '');
+      var sepIdx = body.indexOf(' : ');                      // FIRST occurrence only
+      if (sepIdx === -1){
+        warnings.push({ lineNo: lineNo, raw: raw, reason: 'Séparateur " : " absent' });
+        continue;
+      }
+
+      var term = body.slice(0, sepIdx).trim();
+      var rest = body.slice(sepIdx + 3).trim();              // everything after first " : " (may contain ":")
+      var sentence = null;
+      var pipeIdx = rest.indexOf(' | ');
+      if (pipeIdx !== -1){
+        sentence = rest.slice(pipeIdx + 3).trim();
+        rest = rest.slice(0, pipeIdx).trim();
+      }
+      var definition = rest;
+
+      if (!term){ warnings.push({ lineNo: lineNo, raw: raw, reason: 'Terme vide' }); continue; }
+      if (!definition){ warnings.push({ lineNo: lineNo, raw: raw, reason: 'Définition vide' }); continue; }
+      if (category === null){
+        warnings.push({ lineNo: lineNo, raw: raw, reason: 'Carte avant toute section "# ..."' });
+        continue;
+      }
+      if (sentence !== null && sentence.indexOf('___') === -1){
+        warnings.push({ lineNo: lineNo, raw: raw, reason: 'Phrase sans marqueur "___" — phrase ignorée' });
+        sentence = null;
+      }
+
+      var id = cardId(term);
+      if (seen[id]){
+        warnings.push({ lineNo: lineNo, raw: raw, reason: 'Terme en doublon — carte ignorée' });
+        continue;
+      }
+      seen[id] = true;
+      cards.push({ id: id, term: term, definition: definition, sentence: sentence, category: category, lineNo: lineNo });
+    } catch (err){
+      warnings.push({ lineNo: lineNo, raw: raw, reason: 'Erreur de parsing: ' + ((err && err.message) || err) });
+    }
+  }
+  return { cards: cards, categories: categories, warnings: warnings };
+}
+
+/* ================================================================== */
+/* STORAGE                                                             */
+/* ================================================================== */
+
+var SCHEMA_VERSION = 1;
+var K_INDEX = 'studyapp:index';
+var K_SETTINGS = 'studyapp:settings';
+function K_DECK(id){ return 'studyapp:deck:' + id; }
+
+var LS = {
+  get: function(k){ try { return JSON.parse(localStorage.getItem(k)); } catch (e){ return null; } },
+  set: function(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e){ return false; } },
+  del: function(k){ try { localStorage.removeItem(k); } catch (e){} }
+};
+
+function defaultStats(){ return { history: [], daily: {}, lastSessionAt: null }; }
+
+function migrateBundle(b){
+  if (!b || typeof b !== 'object') return b;
+  var v = b.schemaVersion || 0;
+  if (v < 1){
+    b.progress = b.progress || {};
+    b.stats = b.stats || defaultStats();
+    if (!b.stats.history) b.stats.history = [];
+    if (!b.stats.daily) b.stats.daily = {};
+    b.sessionInProgress = b.sessionInProgress || null;
+    v = 1;
+  }
+  // future: if (v < 2) { ... ; v = 2; }
+  b.schemaVersion = SCHEMA_VERSION;
+  return b;
+}
+
+function readIndex(){ var a = LS.get(K_INDEX); return Array.isArray(a) ? a : []; }
+function registerIndex(deckId){
+  var a = readIndex();
+  if (a.indexOf(deckId) === -1){ a.push(deckId); LS.set(K_INDEX, a); }
+}
+function unregisterIndex(deckId){
+  LS.set(K_INDEX, readIndex().filter(function(x){ return x !== deckId; }));
+}
+
+function loadBundle(deckId){ return migrateBundle(LS.get(K_DECK(deckId))); }
+function saveBundle(b){
+  if (!b || !b.deckId) return;
+  b.schemaVersion = SCHEMA_VERSION;
+  LS.set(K_DECK(b.deckId), b);
+  registerIndex(b.deckId);
+}
+
+function loadSettings(){
+  var s = LS.get(K_SETTINGS) || {};
+  return {
+    theme: s.theme || 'system',            // 'system' | 'light' | 'dark'
+    sessionSize: s.sessionSize || 20,
+    blockByCategory: !!s.blockByCategory,
+    direction: s.direction || 'term->def'  // 'term->def' | 'def->term'
+  };
+}
+function saveSettings(s){ LS.set(K_SETTINGS, s); }
+
+// Create or merge a bundle from deck source text. Progress is kept per matching card id.
+function ingestDeck(name, source, opts){
+  opts = opts || {};
+  var parsed = parseDeck(source);
+  var deckId = hashDeckId(parsed.cards);
+  var existing = loadBundle(deckId);
+  var bundle;
+  if (existing){
+    bundle = existing;
+    bundle.source = source;
+    if (opts.rename && name) bundle.name = name;
+  } else {
+    bundle = {
+      schemaVersion: SCHEMA_VERSION,
+      deckId: deckId,
+      name: name || 'Deck',
+      source: source,
+      progress: {},
+      sessionInProgress: null,
+      stats: defaultStats()
+    };
+  }
+  // prune progress entries whose card no longer exists
+  var ids = {};
+  parsed.cards.forEach(function(c){ ids[c.id] = true; });
+  Object.keys(bundle.progress).forEach(function(k){ if (!ids[k]) delete bundle.progress[k]; });
+
+  if (!opts.dryRun) saveBundle(bundle);
+  return {
+    bundle: bundle,
+    parsed: parsed,
+    report: {
+      imported: parsed.cards.length,
+      ignored: parsed.warnings.length,
+      categories: parsed.categories.length,
+      sentences: parsed.cards.filter(function(c){ return !!c.sentence; }).length,
+      warnings: parsed.warnings,
+      merged: !!existing
+    }
+  };
+}
+
+function mergeProgressJSON(bundle, json){
+  if (!json || typeof json !== 'object') return 0;
+  var src = json.progress || json;
+  var n = 0;
+  Object.keys(src).forEach(function(id){
+    var v = src[id];
+    if (v && typeof v === 'object' && typeof v.box === 'number'){ bundle.progress[id] = v; n++; }
+  });
+  if (json.stats && Array.isArray(json.stats.history)) bundle.stats = json.stats;
+  saveBundle(bundle);
+  return n;
+}
+
+function resetDeck(bundle){
+  bundle.progress = {};
+  bundle.sessionInProgress = null;
+  bundle.stats = defaultStats();
+  saveBundle(bundle);
+}
+
+/* ================================================================== */
+/* SCHEDULER  (Leitner + SM-2 allégé — fonctions pures)                */
+/* ================================================================== */
+
+var BOX_INTERVALS = [0, 1, 2, 4, 8, 16];   // days; index === box
+var EASE_MIN = 1.7, EASE_MAX = 2.8, EASE_DEFAULT = 2.3;
+
+function clamp(x, lo, hi){ return Math.max(lo, Math.min(hi, x)); }
+function startOfDay(ms){ var d = new Date(ms); d.setHours(0, 0, 0, 0); return d.toISOString(); }
+function addDaysFrom(ms, days){ var d = new Date(ms); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + days); return d.toISOString(); }
+function dueMs(st){ return (st && st.dueDate) ? new Date(st.dueDate).getTime() : Infinity; }
+
+function freshState(){
+  return { box: 0, ease: EASE_DEFAULT, dueDate: null, streak: 0, lapses: 0, seen: 0, correct: 0, freeStreak: 0, lastResult: null };
+}
+
+// outcome = { result: 'good'|'hard'|'again'|'almost', channel: 'free'|'scaffold' }
+function nextState(prev, outcome, now){
+  var s = Object.assign(freshState(), prev || {});
+  var result = outcome && outcome.result;
+  var channel = (outcome && outcome.channel) || 'scaffold';
+  s.seen = (s.seen || 0) + 1;
+
+  if (result === 'almost'){
+    s.lastResult = 'almost';
+    if (s.dueDate == null) s.dueDate = startOfDay(now);   // stays; replayed in-session; not a failure
+    return s;
+  }
+
+  if (result === 'again'){
+    s.box = 0;
+    s.lapses = (s.lapses || 0) + 1;
+    s.streak = 0;
+    s.freeStreak = 0;
+    s.ease = clamp((s.ease || EASE_DEFAULT) - 0.2, EASE_MIN, EASE_MAX);
+    s.dueDate = startOfDay(now);
+    s.lastResult = 'again';
+    return s;
+  }
+
+  // 'good' or 'hard' -> success
+  s.correct = (s.correct || 0) + 1;
+  s.streak = (s.streak || 0) + 1;
+  if (channel === 'free') s.freeStreak = (s.freeStreak || 0) + 1;   // QCM never builds mastery
+  s.box = Math.min((s.box || 0) + 1, 5);
+  if (result === 'hard') s.ease = clamp((s.ease || EASE_DEFAULT) - 0.15, EASE_MIN, EASE_MAX);
+  else s.ease = clamp((s.ease || EASE_DEFAULT) + 0.05, EASE_MIN, EASE_MAX);
+
+  var baseDays = BOX_INTERVALS[Math.min(s.box, BOX_INTERVALS.length - 1)];
+  var factor = (result === 'hard') ? 1 : (s.ease / EASE_DEFAULT);
+  var days = Math.max(0, Math.round(baseDays * factor));
+  s.dueDate = days === 0 ? startOfDay(now) : addDaysFrom(now, days);
+  s.lastResult = 'good';
+  return s;
+}
+
+function isMastered(st){ return !!st && (st.freeStreak || 0) >= 2; }
+
+function cardStatus(st, now){
+  if (!st || (st.seen || 0) === 0) return 'new';
+  if (isMastered(st)) return 'mastered';
+  if (st.dueDate && new Date(st.dueDate).getTime() <= now) return 'due';
+  return 'learning';
+}
+
+function deckSegments(cards, progress, now){
+  var seg = { new: 0, learning: 0, mastered: 0, due: 0 };
+  cards.forEach(function(c){
+    var s = cardStatus(progress[c.id], now);
+    if (s === 'new') seg.new++;
+    else if (s === 'learning') seg.learning++;
+    else if (s === 'mastered') seg.mastered++;
+    else seg.due++;
+  });
+  return seg;
+}
+
+// Deterministic round-robin interleave by category.
+function interleave(cards){
+  var groups = new Map();
+  cards.forEach(function(c){
+    var k = c.category || '';
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(c);
+  });
+  var lists = Array.from(groups.values());
+  var out = [];
+  var moved = true;
+  while (moved){
+    moved = false;
+    for (var i = 0; i < lists.length; i++){
+      if (lists[i].length){ out.push(lists[i].shift()); moved = true; }
+    }
+  }
+  return out;
+}
+
+function mulberry32(seed){
+  var a = seed >>> 0;
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function shuffle(arr, rand){
+  rand = rand || Math.random;
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--){
+    var j = Math.floor(rand() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+// buildQueue(cards, options, now) -> [cardId, ...]
+// options: { size, blockByCategory, category, onlyIds, progress, shuffle, seed }
+function buildQueue(cards, options, now){
+  var opt = Object.assign({ size: 20, blockByCategory: false, category: null, onlyIds: null,
+    progress: {}, shuffle: true, seed: 12345 }, options || {});
+  var prog = opt.progress || {};
+  var pool = cards.slice();
+  if (opt.category) pool = pool.filter(function(c){ return c.category === opt.category; });
+  if (opt.onlyIds){
+    var set = new Set(opt.onlyIds);
+    pool = pool.filter(function(c){ return set.has(c.id); });
+  }
+  if (opt.shuffle) pool = shuffle(pool, mulberry32(opt.seed));
+
+  var due = [], learning = [], fresh = [];
+  pool.forEach(function(c){
+    var st = prog[c.id];
+    var status = cardStatus(st, now);
+    if (status === 'mastered'){
+      if (opt.onlyIds) learning.push(c);                                            // explicit review list: always include
+      else if (st && st.dueDate && new Date(st.dueDate).getTime() <= now) due.push(c);  // otherwise spaced review only
+      return;
+    }
+    if (status === 'due') due.push(c);
+    else if (status === 'learning') learning.push(c);
+    else fresh.push(c);
+  });
+  due.sort(function(a, b){ return dueMs(prog[a.id]) - dueMs(prog[b.id]); });
+
+  var ordered = due.concat(learning).concat(fresh).slice(0, Math.max(1, opt.size));
+  if (!opt.blockByCategory) ordered = interleave(ordered);
+  return ordered.map(function(c){ return c.id; });
+}
+
+// Reinject a failed card AFTER a gap of cards (never immediately). Pure.
+function insertRequeue(queue, cursor, cardId, gap){
+  var pos = Math.min(cursor + Math.max(3, gap), queue.length);
+  var q = queue.slice();
+  q.splice(pos, 0, cardId);
+  return q;
+}
+
+/* ================================================================== */
+/* SESSION  (answer checking is pure; the rest is the mode machine)    */
+/* ================================================================== */
+
+function stripAnswer(s){
+  var x = String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  x = x.replace(/\s+/g, ' ').trim();
+  x = x.replace(/[.,;:!?'"’)\]]+$/g, '').trim();      // trailing punctuation
+  x = x.replace(/^(a|an|the)\s+/, '');                      // leading article
+  x = x.replace(/\s+/g, ' ').trim();
+  return x;
+}
+
+function levenshtein(a, b){
+  a = String(a); b = String(b);
+  var m = a.length, n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  var prev = new Array(n + 1), cur = new Array(n + 1), i, j;
+  for (j = 0; j <= n; j++) prev[j] = j;
+  for (i = 1; i <= m; i++){
+    cur[0] = i;
+    for (j = 1; j <= n; j++){
+      var cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    var tmp = prev; prev = cur; cur = tmp;
+  }
+  return prev[n];
+}
+
+// compareAnswer(input, expected) -> { verdict: 'correct'|'almost'|'wrong'|'empty', distance }
+function compareAnswer(input, expected){
+  var A = stripAnswer(input), B = stripAnswer(expected);
+  if (!A) return { verdict: 'empty', distance: Infinity };
+  if (A === B) return { verdict: 'correct', distance: 0 };
+  var d = levenshtein(A, B);
+  var tol = B.length > 8 ? 2 : 1;
+  if (d <= tol) return { verdict: 'almost', distance: d };
+  return { verdict: 'wrong', distance: d };
+}
+
+// buildMCQ(card, pool, direction, rand) -> { options:[{text,correct}], answerIndex }
+function buildMCQ(card, pool, direction, rand){
+  rand = rand || Math.random;
+  var key = direction === 'def->term' ? 'term' : 'definition';
+  var others = pool.filter(function(c){ return c.id !== card.id; });
+  var same = shuffle(others.filter(function(c){ return c.category === card.category; }), rand);
+  var rest = shuffle(others.filter(function(c){ return c.category !== card.category; }), rand);
+  var picks = [];
+  same.concat(rest).forEach(function(c){
+    if (picks.length >= 3) return;
+    if (c[key] === card[key]) return;
+    if (picks.some(function(p){ return p[key] === c[key]; })) return;
+    picks.push(c);
+  });
+  var opts = shuffle(picks.map(function(c){ return { text: c[key], correct: false }; })
+    .concat([{ text: card[key], correct: true }]), rand);
+  return { options: opts, answerIndex: opts.findIndex(function(o){ return o.correct; }) };
+}
+
+function mapVerdict(v){
+  if (v === 'correct') return 'good';
+  if (v === 'almost') return 'almost';
+  return 'again';
+}
+
+/* ================================================================== */
+/* STATS                                                               */
+/* ================================================================== */
+
+function dayKey(ms){ var d = new Date(ms); d.setHours(0, 0, 0, 0); return d.toISOString().slice(0, 10); }
+
+function pushHistory(bundle, entry){
+  bundle.stats.history.push(entry);
+  if (bundle.stats.history.length > 3000) bundle.stats.history = bundle.stats.history.slice(-3000);
+}
+function markDaily(bundle, ms){
+  var k = dayKey(ms);
+  bundle.stats.daily[k] = (bundle.stats.daily[k] || 0) + 1;
+}
+
+function computeStats(bundle, cards, now){
+  var prog = bundle.progress || {};
+  var log = (bundle.stats && bundle.stats.history) || [];
+  var daily = (bundle.stats && bundle.stats.daily) || {};
+
+  var gAsked = 0, gCorrect = 0, forced = 0;
+  var byCat = {};
+  log.forEach(function(e){
+    gAsked++;
+    if (e.correct) gCorrect++;
+    if (e.forced) forced++;
+    var c = e.category || '—';
+    if (!byCat[c]) byCat[c] = { asked: 0, correct: 0 };
+    byCat[c].asked++;
+    if (e.correct) byCat[c].correct++;
+  });
+
+  var days = [];
+  var dmap = new Map();
+  for (var i = 29; i >= 0; i--){
+    var d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+    var k = d.toISOString().slice(0, 10);
+    var rec = { date: k, asked: 0, correct: 0 };
+    days.push(rec); dmap.set(k, rec);
+  }
+  log.forEach(function(e){
+    var k = String(e.date).slice(0, 10);
+    if (dmap.has(k)){ var r = dmap.get(k); r.asked++; if (e.correct) r.correct++; }
+  });
+
+  var missed = cards.map(function(c){
+    var s = prog[c.id] || {};
+    return { card: c, lapses: s.lapses || 0, seen: s.seen || 0, wrong: (s.seen || 0) - (s.correct || 0) };
+  }).filter(function(x){ return x.lapses > 0 || x.wrong > 0; })
+    .sort(function(a, b){ return (b.lapses - a.lapses) || (b.wrong - a.wrong); })
+    .slice(0, 10);
+
+  var streakDays = 0;
+  (function(){
+    var off = 0;
+    var has = function(o){
+      var dd = new Date(now); dd.setHours(0, 0, 0, 0); dd.setDate(dd.getDate() - o);
+      return !!daily[dd.toISOString().slice(0, 10)];
+    };
+    if (!has(0)) off = 1;
+    while (has(off)){ streakDays++; off++; }
+  })();
+
+  var seg = deckSegments(cards, prog, now);
+
+  return {
+    gAsked: gAsked, gCorrect: gCorrect, forced: forced,
+    rate: gAsked ? Math.round(100 * gCorrect / gAsked) : 0,
+    byCat: byCat, days: days, missed: missed, streakDays: streakDays,
+    dueToday: seg.due, newCount: seg.new, seg: seg
+  };
+}
+
+/* ================================================================== */
+/* DECKS  (embarqués — sérialisés ici, parsés au boot ; zéro fetch)    */
+/*  NOTE: échantillons de démonstration (5 cartes / deck). Les 150     */
+/*  cartes définitives remplaceront ces `source` sans toucher au code. */
+/* ================================================================== */
+
+var EMBEDDED_DECKS = [
+  {
+    name: 'Business English',
+    file: 'deck-business-english.mkd',
+    source: [
+      '# Meetings & negotiation',
+      '- leverage : to use an advantage you already have to get a better outcome | We can ___ our early lead to negotiate longer payment terms.',
+      '- concede : to admit a point or drop a demand during a discussion | She refused to ___ on price but agreed to a faster delivery date.',
+      '',
+      '# Project & management',
+      "- stakeholder : a person or group affected by, or able to influence, a project | Every ___ signed off on the roadmap before any code was written.",
+      '- bottleneck : one stage that limits the speed of a whole process | Manual approval became the ___ that delayed every release last quarter.',
+      '',
+      '# Finance & reporting',
+      '- accrual : an expense or revenue recorded before the cash actually moves | The auditors asked us to justify the year-end ___ for unpaid bonuses.'
+    ].join('\n')
+  },
+  {
+    name: 'Tech & AI',
+    file: 'deck-tech-ai.mkd',
+    source: [
+      '# Data & engineering',
+      '- idempotent : giving the same result however many times the operation runs | We made the payment endpoint ___ so retries never charge a customer twice.',
+      '- latency : the delay between sending a request and receiving its response | Users left the search page once ___ rose above two seconds.',
+      '',
+      '# AI & machine learning',
+      '- overfitting : learning the training data so closely that new data performs badly | Validation loss climbed while training loss fell, a clear case of ___.',
+      '- inference : the stage where a trained model produces predictions from new input | Running ___ on the device kept user data off our servers.',
+      '',
+      '# Product & software',
+      '- regression : a defect that breaks something which previously worked | The release shipped a ___ in the export button, so we rolled it back.'
+    ].join('\n')
+  },
+  {
+    name: 'IELTS Speaking',
+    file: 'deck-ielts-speaking.mkd',
+    source: [
+      '# Discourse markers',
+      '- having said that : phrase adding a point that partly contradicts what you just said | The city is expensive; ___, salaries are high enough to cope.',
+      '- broadly speaking : used to give a general view without covering every detail | ___, younger people in my country now prefer streaming to television.',
+      '',
+      '# Idioms & collocations',
+      '- a mixed blessing : something with clear benefits and clear drawbacks at once | Working from home is ___: I save commuting time but feel isolated.',
+      '',
+      '# Opinion & nuance',
+      '- I am inclined to think : a cautious way to state an opinion you might still revise | ___ that stricter rules would help, though I see the objections.',
+      '- to a certain extent : partly true, but with real limits or reservations | I agree with that statement ___, but money is not the only motivator.'
+    ].join('\n')
+  }
+];
+
+/* ================================================================== */
+/* UI  (état unique + render ; aucune écriture DOM hors de cette zone) */
+/* ================================================================== */
+
+var state = {
+  route: 'home',            // 'home' | 'config' | 'session' | 'stats'
+  decks: [],                // [{ deckId, name, file, cards, categories, warnings, bundle }]
+  settings: null,
+  activeId: null,
+  config: null,             // { mode, direction, category, size, blockByCategory }
+  session: null,
+  ui: { modal: null, toast: null, dropHot: false }
+};
+
+/* ---- tiny DOM helper (textContent only — no innerHTML with deck data) ---- */
+function h(tag, attrs, kids){
+  var n = document.createElement(tag);
+  if (attrs){
+    Object.keys(attrs).forEach(function(k){
+      var v = attrs[k];
+      if (v == null || v === false) return;
+      if (k === 'class') n.className = v;
+      else if (k === 'text') n.textContent = v;
+      else if (k === 'style' && typeof v === 'object') Object.assign(n.style, v);
+      else if (k.slice(0, 2) === 'on' && typeof v === 'function') n.addEventListener(k.slice(2), v);
+      else n.setAttribute(k, v === true ? '' : v);
+    });
+  }
+  ([]).concat(kids == null ? [] : kids).forEach(function(c){
+    if (c == null || c === false) return;
+    n.appendChild((typeof c === 'string' || typeof c === 'number') ? document.createTextNode(String(c)) : c);
+  });
+  return n;
+}
+function clear(node){ while (node.firstChild) node.removeChild(node.firstChild); }
+function fmtDate(iso){
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('fr-CA'); } catch (e){ return '—'; }
+}
+function toast(msg){
+  state.ui.toast = msg;
+  render();
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ state.ui.toast = null; render(); }, 2200);
+}
+
+/* ---- deck loading ---- */
+function ensureEmbedded(){
+  EMBEDDED_DECKS.forEach(function(d){
+    var parsed = parseDeck(d.source);
+    var id = hashDeckId(parsed.cards);
+    if (!loadBundle(id)) ingestDeck(d.name, d.source, {});
+  });
+}
+function loadAllDecks(){
+  var embFiles = {};
+  EMBEDDED_DECKS.forEach(function(d){
+    embFiles[hashDeckId(parseDeck(d.source).cards)] = d.file;
+  });
+  state.decks = readIndex().map(function(id){
+    var b = loadBundle(id);
+    if (!b) return null;
+    var parsed = parseDeck(b.source || '');
+    return {
+      deckId: id, name: b.name, file: embFiles[id] || null,
+      cards: parsed.cards, categories: parsed.categories, warnings: parsed.warnings,
+      bundle: b
+    };
+  }).filter(Boolean);
+}
+function activeDeck(){ return state.decks.filter(function(d){ return d.deckId === state.activeId; })[0] || null; }
+
+/* ---- theme ---- */
+function applyTheme(){
+  var t = state.settings.theme;
+  if (t === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+}
+function cycleTheme(){
+  var order = ['system', 'light', 'dark'];
+  var i = order.indexOf(state.settings.theme);
+  state.settings.theme = order[(i + 1) % order.length];
+  saveSettings(state.settings);
+  applyTheme();
+  render();
+}
+
+/* ============================ SCREENS ============================== */
+
+function screenHome(){
+  var wrap = h('div');
+  wrap.appendChild(h('div', { class: 'spread' }, [
+    h('h1', { text: 'StudyApp' }),
+    h('div', { class: 'row' }, [
+      h('button', { class: 'btn ghost small', onclick: cycleTheme, title: 'Thème',
+        text: 'Thème : ' + state.settings.theme })
+    ])
+  ]));
+  wrap.appendChild(h('p', { class: 'muted small',
+    text: 'Rappel actif d’abord : chaque carte se termine par une auto-évaluation ou une saisie, jamais par une simple relecture.' }));
+
+  if (!state.decks.length){
+    wrap.appendChild(h('div', { class: 'card-panel', text: 'Aucun deck. Importez un fichier .mkd ci-dessous.' }));
+  }
+
+  state.decks.forEach(function(d){
+    var now = Date.now();
+    var seg = deckSegments(d.cards, d.bundle.progress, now);
+    var total = d.cards.length || 1;
+    var pct = function(x){ return (100 * x / total).toFixed(2) + '%'; };
+    var resume = d.bundle.sessionInProgress;
+
+    var row = h('button', { class: 'deck', onclick: function(){ openConfig(d.deckId); } }, [
+      h('div', { class: 'spread' }, [
+        h('strong', { text: d.name }),
+        h('span', { class: 'small muted', text: d.cards.length + ' cartes' })
+      ]),
+      h('div', { class: 'seg' }, [
+        h('i', { class: 's-new', style: { width: pct(seg.new) } }),
+        h('i', { class: 's-learn', style: { width: pct(seg.learning) } }),
+        h('i', { class: 's-master', style: { width: pct(seg.mastered) } }),
+        h('i', { class: 's-revoir', style: { width: pct(seg.due) } })
+      ]),
+      h('div', { class: 'legend' }, [
+        h('span', {}, [h('i', { class: 's-new', style: { background: 'var(--new)' } }), 'nouvelles ' + seg.new]),
+        h('span', {}, [h('i', { style: { background: 'var(--learn)' } }), 'en cours ' + seg.learning]),
+        h('span', {}, [h('i', { style: { background: 'var(--master)' } }), 'acquises ' + seg.mastered]),
+        h('span', {}, [h('i', { style: { background: 'var(--revoir)' } }), 'à revoir ' + seg.due])
+      ]),
+      h('div', { class: 'small muted', style: { marginTop: '6px' },
+        text: 'Dernière session : ' + fmtDate(d.bundle.stats.lastSessionAt) + (resume ? '  ·  session en cours' : '') })
+    ]);
+    wrap.appendChild(row);
+  });
+
+  wrap.appendChild(h('hr'));
+  wrap.appendChild(importBlock());
+  return wrap;
+}
+
+function importBlock(){
+  var box = h('div', { class: 'card-panel' }, [ h('h2', { text: 'Ajouter un deck' }) ]);
+
+  var dz = h('div', {
+    class: 'drop' + (state.ui.dropHot ? ' hot' : ''),
+    ondragover: function(e){ e.preventDefault(); if (!state.ui.dropHot){ state.ui.dropHot = true; render(); } },
+    ondragleave: function(){ state.ui.dropHot = false; render(); },
+    ondrop: function(e){
+      e.preventDefault(); state.ui.dropHot = false;
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if (f) readDeckFile(f);
+      else render();
+    }
+  }, [ 'Glissez un fichier .mkd ici, ou' ]);
+
+  var input = h('input', { type: 'file', accept: '.mkd,.md,.txt,text/plain', style: { display: 'block', margin: '10px auto' },
+    onchange: function(e){ var f = e.target.files && e.target.files[0]; if (f) readDeckFile(f); } });
+  dz.appendChild(input);
+  box.appendChild(dz);
+
+  box.appendChild(h('p', { class: 'small muted', style: { margin: '12px 0 4px' }, text: 'ou collez le texte d’un deck :' }));
+  var ta = h('textarea', { id: 'paste', placeholder: '# Ma section\n- word : definition | Sentence using the ___ in context.' });
+  box.appendChild(ta);
+  box.appendChild(h('div', { class: 'row', style: { marginTop: '8px' } }, [
+    h('button', { class: 'btn', text: 'Importer le texte collé', onclick: function(){
+      var txt = document.getElementById('paste').value;
+      if (!txt.trim()){ toast('Rien à importer'); return; }
+      doImport('Deck collé ' + new Date().toLocaleDateString('fr-CA'), txt);
+    } })
+  ]));
+  return box;
+}
+
+function readDeckFile(file){
+  var r = new FileReader();
+  r.onload = function(){
+    var name = String(file.name || 'Deck').replace(/\.(mkd|md|txt)$/i, '');
+    doImport(name, String(r.result || ''));
+  };
+  r.onerror = function(){ toast('Lecture du fichier impossible'); };
+  r.readAsText(file);
+}
+
+function doImport(name, text){
+  var res = ingestDeck(name, text, { rename: true });
+  loadAllDecks();
+  var r = res.report;
+  showImportReport(name, r);
+}
+
+function showImportReport(name, r){
+  state.ui.modal = {
+    title: 'Import — ' + name,
+    body: function(){
+      var w = h('div');
+      w.appendChild(h('p', { text: r.imported + ' cartes importées, ' + r.ignored + ' lignes ignorées.' }));
+      w.appendChild(h('p', { class: 'small muted',
+        text: r.categories + ' catégories · ' + r.sentences + ' phrases « | » · ' + (r.merged ? 'progression fusionnée' : 'nouveau deck') }));
+      if (r.warnings.length){
+        w.appendChild(h('div', { class: 'warnlist' }, r.warnings.map(function(x){
+          return h('div', { text: 'L' + x.lineNo + ' — ' + x.reason + '  ›  ' + x.raw });
+        })));
+      }
+      return w;
+    }
+  };
+  render();
+}
+
+function openConfig(deckId){
+  state.activeId = deckId;
+  var d = activeDeck();
+  var hasSentences = d.cards.some(function(c){ return !!c.sentence; });
+  state.config = {
+    mode: 'learn',
+    direction: state.settings.direction,
+    category: '',
+    size: state.settings.sessionSize,
+    blockByCategory: state.settings.blockByCategory,
+    onlyIds: null
+  };
+  state._hasSentences = hasSentences;
+  state.route = 'config';
+  render();
+}
+
+var MODES = [
+  { key: 'flash', label: 'Cartes', desc: 'Recto/verso — auto-évaluation (Encore / Difficile / Acquis).' },
+  { key: 'learn', label: 'Apprentissage', desc: 'QCM pour les cartes neuves, puis saisie libre. Cœur de l’app.' },
+  { key: 'write', label: 'Écriture', desc: 'Définition affichée — vous tapez le terme.' },
+  { key: 'apply', label: 'Mise en application', desc: 'Phrase à trou — vous tapez le terme manquant.' },
+  { key: 'match', label: 'Association', desc: 'Grille d’appariement chronométrée.' }
+];
+
+function screenConfig(){
+  var d = activeDeck();
+  var c = state.config;
+  var wrap = h('div');
+  wrap.appendChild(h('div', { class: 'spread' }, [
+    h('h1', { text: d.name }),
+    h('button', { class: 'btn ghost small', text: '← Accueil', onclick: function(){ state.route = 'home'; render(); } })
+  ]));
+  wrap.appendChild(h('p', { class: 'small muted', text: d.cards.length + ' cartes · ' + d.categories.length + ' catégories' }));
+
+  if (d.bundle.sessionInProgress){
+    wrap.appendChild(h('div', { class: 'card-panel' }, [
+      h('p', { text: 'Une session est en cours sur ce deck.' }),
+      h('div', { class: 'row' }, [
+        h('button', { class: 'btn primary', text: 'Reprendre', onclick: resumeSession }),
+        h('button', { class: 'btn ghost', text: 'Abandonner', onclick: function(){
+          d.bundle.sessionInProgress = null; saveBundle(d.bundle); render();
+        } })
+      ])
+    ]));
+  }
+
+  var form = h('div', { class: 'card-panel' });
+
+  // mode
+  form.appendChild(h('label', { text: 'Mode d’étude' }));
+  var modeWrap = h('div', { class: 'bars', style: { gap: '8px', marginBottom: '14px' } });
+  MODES.forEach(function(m){
+    var disabled = (m.key === 'apply' && !state._hasSentences);
+    var b = h('button', {
+      class: 'opt' + (c.mode === m.key ? ' sel' : ''),
+      'aria-pressed': c.mode === m.key ? 'true' : 'false',
+      disabled: disabled,
+      onclick: function(){ if (!disabled){ c.mode = m.key; render(); } }
+    }, [
+      h('strong', { text: m.label }),
+      h('div', { class: 'small muted', text: disabled ? 'Indisponible — ce deck ne contient aucune phrase « | … ___ … ».' : m.desc })
+    ]);
+    if (c.mode === m.key) b.style.borderColor = 'var(--accent)';
+    modeWrap.appendChild(b);
+  });
+  form.appendChild(modeWrap);
+
+  // direction
+  form.appendChild(h('label', { text: 'Sens de restitution' }));
+  var dir = h('div', { class: 'row', style: { marginBottom: '14px' } }, [
+    dirBtn('term->def', 'terme → définition'),
+    dirBtn('def->term', 'définition → terme')
+  ]);
+  form.appendChild(dir);
+  function dirBtn(v, lbl){
+    return h('button', { class: 'btn' + (c.direction === v ? ' primary' : ''), text: lbl,
+      onclick: function(){ c.direction = v; render(); } });
+  }
+
+  // category
+  form.appendChild(h('label', { text: 'Catégorie' }));
+  var sel = h('select', { onchange: function(e){ c.category = e.target.value; } });
+  sel.appendChild(h('option', { value: '', text: 'Toutes (interleaving)' }));
+  d.categories.forEach(function(cat){
+    var o = h('option', { value: cat, text: cat });
+    if (c.category === cat) o.selected = true;
+    sel.appendChild(o);
+  });
+  form.appendChild(sel);
+
+  // size + block
+  form.appendChild(h('label', { text: 'Cartes par session', style: { marginTop: '14px' } }));
+  form.appendChild(h('input', { type: 'number', min: '1', max: '200', value: String(c.size),
+    onchange: function(e){ c.size = clamp(parseInt(e.target.value, 10) || 20, 1, 200); } }));
+
+  var chk = h('label', { class: 'row', style: { marginTop: '12px', cursor: 'pointer' } });
+  var cb = h('input', { type: 'checkbox', style: { width: 'auto' } });
+  cb.checked = c.blockByCategory;
+  cb.addEventListener('change', function(){ c.blockByCategory = cb.checked; });
+  chk.appendChild(cb);
+  chk.appendChild(document.createTextNode(' Bloquer par catégorie (désactive l’interleaving)'));
+  form.appendChild(chk);
+
+  form.appendChild(h('div', { class: 'row', style: { marginTop: '16px' } }, [
+    h('button', { class: 'btn primary wide', text: 'Commencer la session', onclick: startSession })
+  ]));
+  wrap.appendChild(form);
+
+  wrap.appendChild(dataPanel(d));
+  wrap.appendChild(h('div', { class: 'row' }, [
+    h('button', { class: 'btn', text: 'Statistiques', onclick: function(){ state.route = 'stats'; render(); } })
+  ]));
+  return wrap;
+}
+
+function dataPanel(d){
+  var box = h('div', { class: 'card-panel' }, [ h('h2', { text: 'Données & progression' }) ]);
+  box.appendChild(h('div', { class: 'row' }, [
+    h('button', { class: 'btn small', text: 'Exporter la progression (JSON)', onclick: function(){ exportProgress(d); } }),
+    h('button', { class: 'btn small', text: 'Importer la progression', onclick: function(){ importProgressPrompt(d); } }),
+    d.file ? h('button', { class: 'btn small', text: 'Exporter le .mkd', onclick: function(){ downloadText(d.file, d.bundle.source); } }) : null,
+    h('button', { class: 'btn small ghost', text: 'Réinitialiser ce deck', onclick: function(){
+      if (confirm('Réinitialiser toute la progression de « ' + d.name + ' » ? Action irréversible.')){
+        resetDeck(d.bundle); loadAllDecks(); toast('Deck réinitialisé'); render();
+      }
+    } })
+  ]));
+  box.appendChild(h('p', { class: 'small muted', style: { marginTop: '8px' },
+    text: 'Identifiant du deck : ' + d.deckId + ' (stable même si le deck ou une section est renommé).' }));
+  return box;
+}
+
+function downloadText(name, text){
+  try {
+    var blob = new Blob([text], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = h('a', { href: url, download: name });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  } catch (e){ toast('Export impossible dans ce navigateur'); }
+}
+function exportProgress(d){
+  downloadText('progress-' + d.deckId + '.json',
+    JSON.stringify({ deckId: d.deckId, name: d.name, schemaVersion: SCHEMA_VERSION,
+      progress: d.bundle.progress, stats: d.bundle.stats }, null, 2));
+}
+function importProgressPrompt(d){
+  var input = h('input', { type: 'file', accept: '.json,application/json', style: { display: 'none' },
+    onchange: function(e){
+      var f = e.target.files && e.target.files[0];
+      if (!f) return;
+      var r = new FileReader();
+      r.onload = function(){
+        try {
+          var n = mergeProgressJSON(d.bundle, JSON.parse(String(r.result)));
+          loadAllDecks(); toast(n + ' cartes de progression importées'); render();
+        } catch (err){ toast('JSON invalide'); }
+      };
+      r.readAsText(f);
+    } });
+  document.body.appendChild(input); input.click(); document.body.removeChild(input);
+}
+
+/* ------------------------------ SESSION ---------------------------- */
+
+function startSession(){
+  var d = activeDeck();
+  var c = state.config;
+  state.settings.direction = c.direction;
+  state.settings.sessionSize = c.size;
+  state.settings.blockByCategory = c.blockByCategory;
+  saveSettings(state.settings);
+
+  var queue = buildQueue(d.cards, {
+    size: c.size, blockByCategory: c.blockByCategory,
+    category: c.category || null, onlyIds: c.onlyIds || null,
+    progress: d.bundle.progress, shuffle: true, seed: (Date.now() % 100000)
+  }, Date.now());
+
+  if (!queue.length){ toast('Aucune carte à réviser avec ces filtres'); return; }
+
+  state.session = {
+    deckId: d.deckId,
+    mode: c.mode, direction: c.direction, category: c.category || null,
+    plannedSize: queue.length,
+    queue: queue, cursor: 0,
+    tailRequeue: [], rqCount: {}, rqTick: 0,
+    results: [], startedAt: new Date().toISOString(),
+    current: null, match: null, forcedNext: false
+  };
+  d.bundle.sessionInProgress = serializeSession(state.session);
+  saveBundle(d.bundle);
+  state.route = 'session';
+  setupCurrent();
+  render();
+}
+
+function serializeSession(s){
+  return {
+    mode: s.mode, direction: s.direction, category: s.category,
+    plannedSize: s.plannedSize, queue: s.queue.slice(), cursor: s.cursor,
+    tailRequeue: s.tailRequeue.slice(), rqCount: Object.assign({}, s.rqCount), rqTick: s.rqTick,
+    results: s.results.slice(), startedAt: s.startedAt
+  };
+}
+function resumeSession(){
+  var d = activeDeck();
+  var sp = d.bundle.sessionInProgress;
+  if (!sp){ toast('Aucune session à reprendre'); return; }
+  state.session = Object.assign({ deckId: d.deckId, current: null, match: null, forcedNext: false }, sp);
+  state.session.queue = sp.queue.slice();
+  state.route = 'session';
+  setupCurrent();
+  render();
+}
+
+function cardById(id){
+  var d = activeDeck();
+  return d.cards.filter(function(c){ return c.id === id; })[0] || null;
+}
+
+function setupCurrent(){
+  var s = state.session;
+  var d = activeDeck();
+  if (s.cursor >= s.queue.length){ endSession(); return; }
+
+  if (s.mode === 'match'){ setupMatch(); return; }
+
+  var card = cardById(s.queue[s.cursor]);
+  var st = d.bundle.progress[card.id] || freshState();
+  var useMCQ = (s.mode === 'learn') && ((st.box || 0) <= 1);
+
+  var cur = { cardId: card.id, phase: 'prompt', mcq: null, verdict: null, given: '', showBack: false, channel: 'free' };
+  if (s.mode === 'flash'){ cur.channel = 'scaffold'; }
+  if (s.mode === 'learn'){ cur.channel = useMCQ ? 'scaffold' : 'free'; if (useMCQ) cur.mcq = buildMCQ(card, d.cards, s.direction, Math.random); }
+  s.current = cur;
+}
+
+function setupMatch(){
+  var s = state.session;
+  var ids = s.queue.slice(s.cursor, s.cursor + 5);
+  var cards = ids.map(cardById).filter(Boolean);
+  var defKey = s.direction === 'def->term' ? 'term' : 'definition';
+  var termKey = s.direction === 'def->term' ? 'definition' : 'term';
+  s.match = {
+    ids: ids,
+    terms: cards.map(function(c){ return { id: c.id, text: c[termKey] }; }),
+    defs: shuffle(cards.map(function(c){ return { id: c.id, text: c[defKey] }; }), Math.random),
+    selTerm: null, selDef: null,
+    matched: {}, errored: {},
+    startedAt: Date.now(), elapsed: 0, done: false
+  };
+}
+
+// central outcome application
+function applyOutcome(cardId, result, channel){
+  var d = activeDeck();
+  var s = state.session;
+  var now = Date.now();
+  var prev = d.bundle.progress[cardId] || freshState();
+  d.bundle.progress[cardId] = nextState(prev, { result: result, channel: channel }, now);
+
+  var card = cardById(cardId);
+  pushHistory(d.bundle, {
+    date: new Date(now).toISOString(), cardId: cardId, category: card ? card.category : null,
+    correct: (result === 'good' || result === 'hard'), almost: result === 'almost',
+    forced: !!s.forcedNext, mode: s.mode
+  });
+  markDaily(d.bundle, now);
+  s.forcedNext = false;
+  s.results.push({ cardId: cardId, result: result });
+
+  if (result === 'again'){
+    var count = s.rqCount[cardId] || 0;
+    if (count < 2){
+      s.rqCount[cardId] = count + 1;
+      s.rqTick++;
+      var gap = 3 + (s.rqTick % 3);           // 3, 4 or 5
+      s.queue = insertRequeue(s.queue, s.cursor, cardId, gap);
+    }
+  } else if (result === 'almost'){
+    if (s.tailRequeue.indexOf(cardId) === -1) s.tailRequeue.push(cardId);
+  }
+
+  d.bundle.sessionInProgress = serializeSession(s);
+  saveBundle(d.bundle);
+}
+
+function advance(){
+  var s = state.session;
+  s.cursor++;
+  if (s.cursor >= s.queue.length && s.tailRequeue.length){
+    s.queue = s.queue.concat(s.tailRequeue);
+    s.tailRequeue = [];
+  }
+  if (s.cursor >= s.queue.length){ endSession(); return; }
+  setupCurrent();
+  render();
+}
+
+function endSession(){
+  var d = activeDeck();
+  var s = state.session;
+  d.bundle.sessionInProgress = null;
+  d.bundle.stats.lastSessionAt = new Date().toISOString();
+  saveBundle(d.bundle);
+  loadAllDecks();
+  s.finished = true;
+  render();
+}
+
+function quitSession(){
+  var d = activeDeck();
+  d.bundle.sessionInProgress = serializeSession(state.session);
+  saveBundle(d.bundle);
+  state.session = null;
+  state.route = 'home';
+  loadAllDecks();
+  render();
+}
+
+/* ---- submit paths ---- */
+function submitText(){
+  var s = state.session;
+  var cur = s.current;
+  if (cur.phase !== 'prompt') return;
+  var card = cardById(cur.cardId);
+  var input = document.getElementById('answer');
+  var given = input ? input.value : '';
+  cur.given = given;
+  var res = compareAnswer(given, card.term);
+  cur.verdict = res.verdict;
+  cur.distance = res.distance;
+  cur.phase = 'feedback';
+  render();
+}
+function chooseMCQ(idx){
+  var s = state.session;
+  var cur = s.current;
+  if (cur.phase !== 'prompt') return;
+  cur.chosen = idx;
+  cur.verdict = (idx === cur.mcq.answerIndex) ? 'correct' : 'wrong';
+  cur.phase = 'feedback';
+  render();
+}
+function gradeFlash(result){
+  var s = state.session;
+  var cur = s.current;
+  if (!cur.showBack) return;
+  applyOutcome(cur.cardId, result, 'scaffold');
+  advance();
+}
+function continueFeedback(){
+  var s = state.session;
+  var cur = s.current;
+  var result = mapVerdict(cur.verdict);
+  var channel = cur.channel;
+  if (cur.verdict === 'empty') result = 'again';
+  applyOutcome(cur.cardId, result, channel);
+  advance();
+}
+function iKnewIt(){
+  var s = state.session;
+  var cur = s.current;
+  s.forcedNext = true;
+  applyOutcome(cur.cardId, 'good', cur.channel);
+  advance();
+}
+
+/* ---- match interactions ---- */
+function matchPick(kind, id){
+  var m = state.session.match;
+  if (m.done || m.matched[id]) return;
+  if (kind === 'term') m.selTerm = (m.selTerm === id ? null : id);
+  else m.selDef = (m.selDef === id ? null : id);
+  if (m.selTerm != null && m.selDef != null){
+    if (m.selTerm === m.selDef){
+      m.matched[m.selTerm] = true;
+    } else {
+      m.errored[m.selTerm] = true;
+      m.errored[m.selDef] = true;
+    }
+    m.selTerm = null; m.selDef = null;
+    if (Object.keys(m.matched).length === m.ids.length) finishMatch();
+  }
+  render();
+}
+function finishMatch(){
+  var s = state.session;
+  var m = s.match;
+  m.done = true;
+  m.elapsed = Math.round((Date.now() - m.startedAt) / 1000);
+  m.ids.forEach(function(id){
+    applyOutcome(id, m.errored[id] ? 'hard' : 'good', 'scaffold');
+  });
+  s.cursor += m.ids.length;
+  render();
+}
+function nextMatchBoard(){
+  var s = state.session;
+  if (s.cursor >= s.queue.length){ endSession(); return; }
+  setupMatch();
+  render();
+}
+
+/* ------------------------------ RENDER SESSION -------------------- */
+
+function exampleNode(card, reveal){
+  if (!card.sentence) return null;
+  var parts = card.sentence.split('___');
+  var kids = [];
+  parts.forEach(function(p, i){
+    if (p) kids.push(document.createTextNode(p));
+    if (i < parts.length - 1) kids.push(h('span', { class: 'blank', text: reveal ? card.term : '    ' }));
+  });
+  return h('p', { class: 'example' }, kids);
+}
+
+function screenSession(){
+  var s = state.session;
+  var d = activeDeck();
+
+  if (s.finished) return sessionSummary();
+
+  var answered = s.results.length;
+  var top = h('div', { class: 'session-top' }, [
+    h('span', { text: d.name + (s.category ? ' · ' + s.category : '') + ' · ' + MODES.filter(function(m){ return m.key === s.mode; })[0].label }),
+    h('span', {}, [
+      String(Math.min(answered + 1, s.plannedSize)) + ' / ' + s.plannedSize +
+        (s.queue.length > s.plannedSize ? '  ·  +' + (s.queue.length - s.plannedSize) + ' reprises' : ''),
+      '  ',
+      h('button', { class: 'btn ghost small', text: 'Quitter', onclick: quitSession })
+    ])
+  ]);
+  var bar = h('div', { class: 'progressbar' }, [ h('i', { style: { width: (100 * answered / s.queue.length) + '%' } }) ]);
+
+  var body = (s.mode === 'match') ? renderMatch() : renderStudyCard();
+
+  return h('div', {}, [ top, bar, body, h('div', { class: 'hint', text: sessionHint() }) ]);
+}
+
+function sessionHint(){
+  var m = state.session.mode;
+  if (m === 'flash') return 'Espace : retourner · 1 Encore · 2 Difficile · 3 Acquis · ? aide';
+  if (m === 'match') return 'Clic ou chiffres/lettres pour apparier · ? aide';
+  return 'Entrée : valider · ? aide';
+}
+
+function renderStudyCard(){
+  var s = state.session;
+  var d = activeDeck();
+  var cur = s.current;
+  var card = cardById(cur.cardId);
+  var st = d.bundle.progress[card.id] || freshState();
+
+  var front = h('div', { class: 'study' });
+
+  // FLASHCARDS
+  if (s.mode === 'flash'){
+    var showTermFirst = s.direction !== 'def->term';
+    front.appendChild(h('div', { class: 'prompt-kicker', text: showTermFirst ? 'Terme' : 'Définition' }));
+    front.appendChild(h('div', { class: 'prompt-main', text: showTermFirst ? card.term : card.definition }));
+    if (cur.showBack){
+      front.appendChild(h('hr'));
+      front.appendChild(h('div', { class: 'prompt-kicker', text: showTermFirst ? 'Définition' : 'Terme' }));
+      front.appendChild(h('div', { class: 'prompt-def', text: showTermFirst ? card.definition : card.term }));
+      var ex = exampleNode(card, true); if (ex) front.appendChild(ex);
+    }
+    var controls = cur.showBack
+      ? h('div', { class: 'grade' }, [
+          h('button', { class: 'btn', text: '1 · Encore', onclick: function(){ gradeFlash('again'); } }),
+          h('button', { class: 'btn', text: '2 · Difficile', onclick: function(){ gradeFlash('hard'); } }),
+          h('button', { class: 'btn primary', text: '3 · Acquis', onclick: function(){ gradeFlash('good'); } })
+        ])
+      : h('div', { class: 'row', style: { marginTop: '16px' } }, [
+          h('button', { id: 'flip', class: 'btn primary wide', text: 'Retourner (Espace)',
+            onclick: function(){ cur.showBack = true; render(); } })
+        ]);
+    front.appendChild(controls);
+    return front;
+  }
+
+  // MCQ (learn, box<=1)
+  if (cur.mcq && cur.phase === 'prompt'){
+    var askTerm = s.direction !== 'def->term';
+    front.appendChild(h('div', { class: 'prompt-kicker', text: askTerm ? 'Choisissez la définition de' : 'Choisissez le terme pour' }));
+    front.appendChild(h('div', { class: 'prompt-main', text: askTerm ? card.term : card.definition }));
+    var grid = h('div', { class: 'answers' });
+    cur.mcq.options.forEach(function(o, i){
+      grid.appendChild(h('button', { class: 'opt', text: o.text, onclick: function(){ chooseMCQ(i); } }));
+    });
+    front.appendChild(grid);
+    return front;
+  }
+
+  // TEXT prompt (write / apply / learn-free) or FEEDBACK
+  if (cur.phase === 'prompt'){
+    if (s.mode === 'apply'){
+      front.appendChild(h('div', { class: 'prompt-kicker', text: 'Complétez la phrase' }));
+      front.appendChild(exampleNode(card, false));
+    } else {
+      front.appendChild(h('div', { class: 'prompt-kicker', text: 'Définition' }));
+      front.appendChild(h('div', { class: 'prompt-def', text: card.definition }));
+    }
+    var f = h('form', { onsubmit: function(e){ e.preventDefault(); submitText(); } }, [
+      h('label', { text: 'Votre réponse (le terme)', style: { marginTop: '14px' } }),
+      h('input', { type: 'text', id: 'answer', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', value: cur.given || '' }),
+      h('button', { class: 'btn primary wide', style: { marginTop: '10px' }, type: 'submit', text: 'Valider (Entrée)' })
+    ]);
+    front.appendChild(f);
+    return front;
+  }
+
+  // FEEDBACK (shared by mcq + text)
+  var v = cur.verdict;
+  var good = (v === 'correct');
+  var almost = (v === 'almost');
+  front.appendChild(h('div', { class: 'prompt-kicker', text: s.mode === 'apply' ? 'Phrase' : 'Terme' }));
+  front.appendChild(h('div', { class: 'prompt-main', text: card.term }));
+  front.appendChild(h('div', { class: 'prompt-def small muted', text: card.definition }));
+  var ex2 = exampleNode(card, true); if (ex2) front.appendChild(ex2);
+
+  var fb = h('div', { class: 'feedback ' + (good ? 'ok' : almost ? 'almost' : 'bad') });
+  fb.appendChild(h('span', { class: 'fb-tag ' + (good ? 'ok' : almost ? 'almost' : 'bad'),
+    text: good ? 'Correct' : almost ? 'Presque !' : 'Incorrect' }));
+  if (cur.given != null && cur.given !== '' && !cur.mcq){
+    fb.appendChild(h('div', { class: 'small', text: 'Vous avez écrit : « ' + cur.given + ' »' + (almost ? '  (écart : ' + cur.distance + ')' : '') }));
+  }
+  if (!good) fb.appendChild(h('div', { class: 'small', text: 'Réponse attendue : ' + card.term }));
+  front.appendChild(fb);
+
+  var acts = h('div', { class: 'row', style: { marginTop: '14px' } }, [
+    h('button', { id: 'cont', class: 'btn primary', text: 'Continuer (Entrée)', onclick: continueFeedback })
+  ]);
+  if (!good){
+    acts.appendChild(h('button', { class: 'btn ghost', text: 'Je l’avais', onclick: iKnewIt }));
+  }
+  front.appendChild(acts);
+  if (almost) front.appendChild(h('p', { class: 'small muted', style: { marginTop: '8px' },
+    text: 'Carte rejouée en fin de session — pas comptée comme échec.' }));
+  return front;
+}
+
+function renderMatch(){
+  var s = state.session;
+  var m = s.match;
+  var elapsed = m.done ? m.elapsed : Math.round((Date.now() - m.startedAt) / 1000);
+
+  var wrap = h('div');
+  wrap.appendChild(h('div', { class: 'spread' }, [
+    h('span', { class: 'small muted', text: Object.keys(m.matched).length + ' / ' + m.ids.length + ' appariées' }),
+    h('span', { id: 'matchtimer', class: 'small muted', text: elapsed + ' s' })
+  ]));
+
+  var grid = h('div', { class: 'match-grid' });
+  var colT = h('div', { class: 'match-col' });
+  var colD = h('div', { class: 'match-col' });
+  m.terms.forEach(function(t, i){
+    colT.appendChild(h('button', {
+      class: 'chip' + (m.matched[t.id] ? ' done' : '') + (m.selTerm === t.id ? ' sel' : '') + (m.errored[t.id] && !m.matched[t.id] ? ' err' : ''),
+      'data-k': 'term', 'data-id': t.id,
+      text: (i + 1) + '. ' + t.text,
+      onclick: function(){ matchPick('term', t.id); }
+    }));
+  });
+  m.defs.forEach(function(dd, i){
+    colD.appendChild(h('button', {
+      class: 'chip' + (m.matched[dd.id] ? ' done' : '') + (m.selDef === dd.id ? ' sel' : '') + (m.errored[dd.id] && !m.matched[dd.id] ? ' err' : ''),
+      'data-k': 'def', 'data-id': dd.id,
+      text: String.fromCharCode(97 + i) + '. ' + dd.text,
+      onclick: function(){ matchPick('def', dd.id); }
+    }));
+  });
+  grid.appendChild(colT); grid.appendChild(colD);
+  wrap.appendChild(grid);
+
+  if (m.done){
+    var more = s.cursor < s.queue.length;
+    wrap.appendChild(h('div', { class: 'feedback ok', style: { marginTop: '14px' } }, [
+      h('span', { class: 'fb-tag ok', text: 'Grille terminée en ' + m.elapsed + ' s' }),
+      h('div', { class: 'small', text: Object.keys(m.errored).length ? 'Erreurs sur certaines paires — cartes marquées « difficile ».' : 'Sans faute.' })
+    ]));
+    wrap.appendChild(h('div', { class: 'row', style: { marginTop: '12px' } }, [
+      h('button', { class: 'btn primary', text: more ? 'Grille suivante' : 'Terminer', onclick: nextMatchBoard })
+    ]));
+  }
+  return wrap;
+}
+
+function sessionSummary(){
+  var s = state.session;
+  var d = activeDeck();
+  var n = s.results.length;
+  var ok = s.results.filter(function(r){ return r.result === 'good' || r.result === 'hard'; }).length;
+  var again = s.results.filter(function(r){ return r.result === 'again'; }).length;
+  var almost = s.results.filter(function(r){ return r.result === 'almost'; }).length;
+  return h('div', {}, [
+    h('h1', { text: 'Session terminée' }),
+    h('div', { class: 'statgrid' }, [
+      stat(n, 'réponses'),
+      stat(n ? Math.round(100 * ok / n) + '%' : '—', 'réussite'),
+      stat(again, 'à retravailler'),
+      stat(almost, 'presque')
+    ]),
+    h('div', { class: 'row' }, [
+      h('button', { class: 'btn primary', text: 'Nouvelle session', onclick: function(){ state.route = 'config'; state.session = null; render(); } }),
+      h('button', { class: 'btn', text: 'Statistiques', onclick: function(){ state.route = 'stats'; state.session = null; render(); } }),
+      h('button', { class: 'btn ghost', text: 'Accueil', onclick: function(){ state.route = 'home'; state.session = null; loadAllDecks(); render(); } })
+    ])
+  ]);
+}
+function stat(v, label){ return h('div', { class: 'stat' }, [ h('b', { text: String(v) }), h('span', { class: 'small muted', text: label }) ]); }
+
+/* ------------------------------ STATS SCREEN --------------------- */
+
+function screenStats(){
+  var d = activeDeck();
+  var st = computeStats(d.bundle, d.cards, Date.now());
+  var wrap = h('div');
+  wrap.appendChild(h('div', { class: 'spread' }, [
+    h('h1', { text: 'Statistiques — ' + d.name }),
+    h('button', { class: 'btn ghost small', text: '← Retour', onclick: function(){ state.route = 'config'; render(); } })
+  ]));
+
+  wrap.appendChild(h('div', { class: 'statgrid' }, [
+    stat(st.rate + '%', 'réussite globale'),
+    stat(st.gAsked, 'réponses cumulées'),
+    stat(st.streakDays, 'jours consécutifs'),
+    stat(st.dueToday + st.newCount, 'dues aujourd’hui'),
+    stat(st.forced, '« je l’avais »')
+  ]));
+
+  // retention sparkline
+  wrap.appendChild(h('div', { class: 'card-panel' }, [
+    h('h2', { text: 'Rétention — 30 jours' }),
+    sparkline(st.days)
+  ]));
+
+  // per category
+  var cats = Object.keys(st.byCat);
+  if (cats.length){
+    var bars = h('div', { class: 'bars' });
+    cats.forEach(function(c){
+      var r = st.byCat[c];
+      var pct = r.asked ? Math.round(100 * r.correct / r.asked) : 0;
+      bars.appendChild(h('div', { class: 'b' }, [
+        h('div', {}, [
+          h('div', { class: 'small', text: c + ' — ' + pct + '% (' + r.asked + ')' }),
+          h('div', { class: 'track' }, [ h('i', { style: { width: pct + '%' } }) ])
+        ]),
+        h('span', {})
+      ]));
+    });
+    wrap.appendChild(h('div', { class: 'card-panel' }, [ h('h2', { text: 'Par catégorie' }), bars ]));
+  }
+
+  // top missed
+  var missBox = h('div', { class: 'card-panel' }, [ h('h2', { text: 'Top 10 des cartes ratées' }) ]);
+  if (!st.missed.length){
+    missBox.appendChild(h('p', { class: 'muted small', text: 'Rien pour l’instant.' }));
+  } else {
+    st.missed.forEach(function(x){
+      missBox.appendChild(h('div', { class: 'small', style: { padding: '4px 0', borderBottom: '1px solid var(--line)' },
+        text: x.card.term + '  —  ' + x.lapses + ' échec(s), ' + x.wrong + ' erreur(s)' }));
+    });
+    missBox.appendChild(h('button', { class: 'btn small', style: { marginTop: '10px' },
+      text: 'Réviser uniquement ces cartes', onclick: function(){
+        state.config = {
+          mode: 'write', direction: state.settings.direction, category: '',
+          size: st.missed.length, blockByCategory: false,
+          onlyIds: st.missed.map(function(x){ return x.card.id; })
+        };
+        state._hasSentences = d.cards.some(function(c){ return !!c.sentence; });
+        startSession();
+      } }));
+  }
+  wrap.appendChild(missBox);
+  return wrap;
+}
+
+function sparkline(days){
+  var W = 600, H = 80, pad = 4;
+  var pts = days.map(function(r, i){
+    var x = pad + i * (W - 2 * pad) / (days.length - 1);
+    var v = r.asked ? r.correct / r.asked : null;
+    return { x: x, v: v, asked: r.asked };
+  });
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'spark');
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  function line(y, color, dash){
+    var l = document.createElementNS(svg.namespaceURI, 'line');
+    l.setAttribute('x1', 0); l.setAttribute('x2', W);
+    l.setAttribute('y1', y); l.setAttribute('y2', y);
+    l.setAttribute('stroke', color); l.setAttribute('stroke-width', '1');
+    if (dash) l.setAttribute('stroke-dasharray', '3 3');
+    svg.appendChild(l);
+  }
+  line(H - pad, 'var(--line)');
+  line(pad, 'var(--line)');
+  var dstr = '';
+  pts.forEach(function(p){
+    if (p.v == null) return;
+    var y = pad + (1 - p.v) * (H - 2 * pad);
+    dstr += (dstr ? ' L' : 'M') + p.x.toFixed(1) + ' ' + y.toFixed(1);
+    var c = document.createElementNS(svg.namespaceURI, 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', y); c.setAttribute('r', '2.5');
+    c.setAttribute('fill', 'var(--accent)');
+    svg.appendChild(c);
+  });
+  if (dstr){
+    var path = document.createElementNS(svg.namespaceURI, 'path');
+    path.setAttribute('d', dstr);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'var(--accent)');
+    path.setAttribute('stroke-width', '1.5');
+    svg.appendChild(path);
+  }
+  var any = pts.some(function(p){ return p.v != null; });
+  var box = h('div');
+  box.appendChild(svg);
+  box.appendChild(h('p', { class: 'small muted', text: any ? '0–100 % de réponses correctes par jour étudié.' : 'Pas encore de données — reviens après quelques sessions.' }));
+  return box;
+}
+
+/* ------------------------------ MODAL / HELP --------------------- */
+
+function helpModal(){
+  return {
+    title: 'Aide — raccourcis',
+    body: function(){
+      return h('div', { class: 'small' }, [
+        row('Espace', 'retourner la carte (mode Cartes)'),
+        row('1 / 2 / 3', 'Encore / Difficile / Acquis'),
+        row('Entrée', 'valider la saisie / continuer'),
+        row('← / →', 'session précédente/suivante (écrans de liste)'),
+        row('?', 'afficher cette aide'),
+        row('Échap', 'fermer'),
+        h('hr'),
+        h('p', { text: 'Principe : une carte n’est « acquise » qu’après 2 saisies libres correctes consécutives. Le QCM est un échafaudage, jamais une preuve.' })
+      ]);
+      function row(k, t){ return h('p', {}, [ h('span', { class: 'kbd', text: k }), '  ' + t ]); }
+    }
+  };
+}
+
+function renderModal(){
+  var m = state.ui.modal;
+  if (!m) return null;
+  var ov = h('div', { class: 'overlay', onclick: function(e){ if (e.target === ov){ state.ui.modal = null; render(); } } }, [
+    h('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true' }, [
+      h('div', { class: 'spread' }, [
+        h('h2', { text: m.title }),
+        h('button', { class: 'btn ghost small', text: 'Fermer (Échap)', onclick: function(){ state.ui.modal = null; render(); } })
+      ]),
+      typeof m.body === 'function' ? m.body() : h('p', { text: String(m.body) })
+    ])
+  ]);
+  return ov;
+}
+
+/* ------------------------------ ROOT RENDER --------------------- */
+
+function render(){
+  var root = document.getElementById('app');
+  clear(root);
+  var view;
+  if (state.route === 'home') view = screenHome();
+  else if (state.route === 'config') view = screenConfig();
+  else if (state.route === 'session') view = screenSession();
+  else if (state.route === 'stats') view = screenStats();
+  else view = screenHome();
+  root.appendChild(view);
+
+  var staleOv = document.querySelector('.overlay');
+  if (staleOv) staleOv.remove();
+  var modal = renderModal();
+  if (modal) document.body.appendChild(modal);
+
+  var oldT = document.querySelector('.toast');
+  if (oldT) oldT.remove();
+  if (state.ui.toast) document.body.appendChild(h('div', { class: 'toast', text: state.ui.toast }));
+
+  // focus management
+  if (state.route === 'session' && state.session && !state.session.finished){
+    var cur = state.session.current;
+    if (state.session.mode !== 'match' && cur){
+      if (cur.phase === 'prompt' && !cur.mcq && state.session.mode !== 'flash'){
+        var inp = document.getElementById('answer'); if (inp) inp.focus();
+      } else if (cur.phase === 'feedback'){
+        var c = document.getElementById('cont'); if (c) c.focus();
+      } else if (state.session.mode === 'flash' && !cur.showBack){
+        var fl = document.getElementById('flip'); if (fl) fl.focus();
+      }
+    }
+  }
+}
+
+/* ------------------------------ KEYBOARD ----------------------- */
+
+function onKey(e){
+  if (state.ui.modal){
+    if (e.key === 'Escape'){ state.ui.modal = null; render(); }
+    return;
+  }
+  // Ne pas détourner les touches pendant une saisie (Entrée gérée par le <form>).
+  var tag = e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '';
+  if ((tag === 'input' || tag === 'textarea' || tag === 'select') && e.key !== 'Escape') return;
+
+  if (e.key === '?'){ e.preventDefault(); state.ui.modal = helpModal(); render(); return; }
+
+  if (state.route !== 'session' || !state.session || state.session.finished) return;
+  var s = state.session;
+  var cur = s.current;
+
+  if (s.mode === 'flash' && cur){
+    if (e.key === ' '){ e.preventDefault(); if (!cur.showBack){ cur.showBack = true; render(); } return; }
+    if (cur.showBack && (e.key === '1' || e.key === '2' || e.key === '3')){
+      e.preventDefault();
+      gradeFlash(e.key === '1' ? 'again' : e.key === '2' ? 'hard' : 'good');
+    }
+    return;
+  }
+  if (s.mode === 'match'){
+    var m = s.match;
+    if (!m || m.done) return;
+    if (/^[1-9]$/.test(e.key)){ var t = m.terms[+e.key - 1]; if (t) matchPick('term', t.id); }
+    else if (/^[a-i]$/.test(e.key)){ var dsel = m.defs[e.key.charCodeAt(0) - 97]; if (dsel) matchPick('def', dsel.id); }
+    return;
+  }
+  // text / mcq modes
+  if (cur && cur.phase === 'feedback'){
+    if (e.key === 'Enter'){ e.preventDefault(); continueFeedback(); }
+    return;
+  }
+  if (cur && cur.phase === 'prompt' && cur.mcq){
+    if (/^[1-4]$/.test(e.key)){ e.preventDefault(); chooseMCQ(+e.key - 1); }
+  }
+  // text prompt: Enter handled by the form submit
+}
+
+/* ------------------------------ SELF-TEST --------------------- */
+/* Ouvrir « studyapp.html#selftest » (double-clic) pour exécuter les     */
+/* vérifications des fonctions pures dans le navigateur — utile quand    */
+/* aucun runtime Node n'est disponible. Voir aussi tests.mjs (CI/Node).  */
+
+function runSelfTests(){
+  var out = [];
+  var pass = 0, fail = 0;
+  var NOW = Date.parse('2026-08-30T12:00:00Z');
+  var DAY = 86400000;
+  function ok(name, cond, info){
+    if (cond){ pass++; out.push('  ok   ' + name); }
+    else { fail++; out.push(' FAIL  ' + name + (info ? '  -> ' + info : '')); }
+  }
+  function eq(name, a, b){ ok(name, JSON.stringify(a) === JSON.stringify(b), 'attendu ' + JSON.stringify(b) + ', obtenu ' + JSON.stringify(a)); }
+
+  // [1] decks embarqués
+  var tc = 0, ts = 0, tw = 0;
+  EMBEDDED_DECKS.forEach(function(d){
+    var r = parseDeck(d.source);
+    tc += r.cards.length; ts += r.cards.filter(function(c){ return c.sentence; }).length; tw += r.warnings.length;
+    ok('[1] ' + d.file + ' : 0 warning', r.warnings.length === 0, JSON.stringify(r.warnings));
+    ok('[1] ' + d.file + ' : toutes les phrases contiennent ___', r.cards.every(function(c){ return c.sentence && c.sentence.indexOf('___') !== -1; }));
+  });
+  ok('[1] échantillons : cartes === phrases, 0 warning', tc === ts && tw === 0, tc + '/' + ts + '/' + tw);
+
+  // [2] ligne malformée
+  var r2 = parseDeck(['# S', '- a : def a | The ___ a.', 'hors format', '- pas de separateur', '- b : def b | The ___ b.'].join('\n'));
+  eq('[2] 2 cartes valides', r2.cards.length, 2);
+  ok('[2] 2 warnings', r2.warnings.length === 2, JSON.stringify(r2.warnings));
+
+  // [3] def avec ':'
+  var r3 = parseDeck('# S\n- ratio : the value of a:b compared | The ___ of a:b was two.');
+  eq('[3] def entière', r3.cards[0].definition, 'the value of a:b compared');
+  eq('[3] phrase', r3.cards[0].sentence, 'The ___ of a:b was two.');
+
+  // [4] ___ unique + terme absent de sa def
+  var bad = [];
+  EMBEDDED_DECKS.forEach(function(d){
+    parseDeck(d.source).cards.forEach(function(c){
+      if ((c.sentence.match(/___/g) || []).length !== 1) bad.push(c.term + ' ___x' + (c.sentence.match(/___/g) || []).length);
+      var t = c.term.toLowerCase().replace(/^(a|an|the) /, '');
+      if (t.length > 3 && c.definition.toLowerCase().indexOf(t) !== -1) bad.push(c.term + ' dans sa def');
+    });
+  });
+  ok('[4] un seul ___ par phrase, terme absent de sa définition', bad.length === 0, bad.join(' ; '));
+
+  // [5] maîtrise
+  var s = freshState();
+  s = nextState(s, { result: 'good', channel: 'free' }, NOW);
+  ok('[5] 1 saisie libre : pas acquise', !isMastered(s));
+  s = nextState(s, { result: 'good', channel: 'free' }, NOW + DAY);
+  ok('[5] 2 saisies libres : acquise', isMastered(s));
+  var qq = nextState(nextState(freshState(), { result: 'good', channel: 'scaffold' }, NOW), { result: 'good', channel: 'scaffold' }, NOW);
+  ok('[5] 2 QCM justes : NON acquise', !isMastered(qq));
+  var af = nextState(s, { result: 'again', channel: 'free' }, NOW + 2 * DAY);
+  eq('[5] échec -> box 0', af.box, 0);
+  eq('[5] échec -> freeStreak 0', af.freeStreak, 0);
+
+  // [6] réinjection différée
+  [3, 4, 5].forEach(function(gap){
+    var o = insertRequeue(['a', 'b', 'c', 'd', 'e', 'f', 'g'], 1, 'X', gap);
+    var pos = o.indexOf('X');
+    ok('[6] gap ' + gap + ' : réinjectée après 3..5 cartes, pas immédiatement', pos - 1 >= 3 && pos - 1 <= 5 && pos !== 2, 'pos=' + pos);
+  });
+
+  // [7] roundtrip d'état
+  var ses = { mode: 'learn', queue: ['a', 'b', 'c'], cursor: 1, tailRequeue: ['a'], results: [{ cardId: 'a', result: 'again' }] };
+  eq('[7] état de session JSON-stable', JSON.parse(JSON.stringify(ses)), ses);
+
+  // [8] perf 500 cartes
+  var cats = ['A', 'B', 'C', 'D', 'E'];
+  var big = [];
+  for (var i = 0; i < 500; i++) big.push({ id: 'c' + i, term: 't' + i, definition: 'd ' + i, sentence: 'The ___ ' + i + '.', category: cats[i % 5] });
+  var prog = {};
+  big.forEach(function(c, i){ if (i % 3 === 0) prog[c.id] = nextState(freshState(), { result: 'good', channel: 'free' }, NOW - 10 * DAY); });
+  var t0 = performance.now(), q8;
+  for (var k = 0; k < 20; k++) q8 = buildQueue(big, { size: 20, progress: prog, shuffle: true, seed: k }, NOW);
+  var ms = (performance.now() - t0) / 20;
+  ok('[8] buildQueue(500) < 200 ms', ms < 200, ms.toFixed(2) + ' ms/appel');
+  eq('[8] file plafonnée à 20', q8.length, 20);
+
+  // [9] deck sans « | »
+  var r9 = parseDeck('# S\n- alpha : first letter\n- beta : second letter');
+  ok('[9] aucune phrase, 0 warning', r9.cards.every(function(c){ return c.sentence === null; }) && r9.warnings.length === 0);
+
+  // [C] correction
+  eq('[C] casse/accents/article/ponctuation', compareAnswer('  The Café. ', 'cafe').verdict, 'correct');
+  eq('[C] faute courte d=1 -> presque', compareAnswer('cet', 'cat').verdict, 'almost');
+  eq('[C] d=2 mot court -> faux', compareAnswer('dot', 'cat').verdict, 'wrong');
+  eq('[C] d=2 mot long (>8) -> presque', compareAnswer('mangment', 'management').verdict, 'almost');
+  eq('[C] d=3 mot long -> faux', compareAnswer('mngmnt', 'management').verdict, 'wrong');
+  eq('[C] levenshtein', levenshtein('kitten', 'sitting'), 3);
+
+  // [H] deckId stable
+  var ha = parseDeck('# Meetings\n- leverage : x | The ___ y.\n- concede : z | The ___ w.');
+  var hb = parseDeck('# AUTRE TITRE\n- concede : z2 | A ___ w2.\n- leverage : x2 | A ___ y2.');
+  eq('[H] deckId inchangé si section renommée / cartes réordonnées', hashDeckId(ha.cards), hashDeckId(hb.cards));
+
+  // [Q] priorité de file
+  var qc = [
+    { id: 'new1', term: 'n', definition: 'd', sentence: 'The ___ .', category: 'A' },
+    { id: 'due1', term: 'o', definition: 'd', sentence: 'The ___ .', category: 'A' },
+    { id: 'lrn1', term: 'l', definition: 'd', sentence: 'The ___ .', category: 'A' }
+  ];
+  var qp = {
+    due1: nextState(freshState(), { result: 'good', channel: 'free' }, NOW - 30 * DAY),
+    lrn1: nextState(freshState(), { result: 'good', channel: 'free' }, NOW + 5 * DAY)
+  };
+  var qres = buildQueue(qc, { size: 10, progress: qp, shuffle: false }, NOW);
+  eq('[Q] carte en retard en tête', qres[0], 'due1');
+  ok('[Q] neuve après en cours', qres.indexOf('new1') > qres.indexOf('lrn1'));
+
+  eq('[E] intervalles expansifs', BOX_INTERVALS, [0, 1, 2, 4, 8, 16]);
+
+  out.push('');
+  out.push(pass + ' pass, ' + fail + ' fail');
+  return { pass: pass, fail: fail, text: out.join('\n') };
+}
+
+function renderSelfTest(){
+  var res = runSelfTests();
+  var root = document.getElementById('app');
+  clear(root);
+  root.appendChild(h('div', { class: 'spread' }, [
+    h('h1', { text: 'Auto-tests — ' + (res.fail ? '❌ ' + res.fail + ' échec(s)' : '✅ tout vert') }),
+    h('a', { class: 'btn ghost small', href: '#', text: 'Ouvrir l’app', onclick: function(){ location.hash = ''; location.reload(); } })
+  ]));
+  root.appendChild(h('pre', {
+    class: 'warnlist',
+    style: { maxHeight: 'none', whiteSpace: 'pre-wrap', fontSize: '.82rem', lineHeight: '1.6' },
+    text: res.text
+  }));
+}
+
+/* ------------------------------ BOOT --------------------------- */
+
+function boot(){
+  state.settings = loadSettings();
+  applyTheme();
+  if (typeof location !== 'undefined' && location.hash === '#selftest'){ renderSelfTest(); return; }
+  ensureEmbedded();
+  loadAllDecks();
+  document.addEventListener('keydown', onKey);
+  window.addEventListener('storage', function(){ loadAllDecks(); if (state.route === 'home') render(); });
+  setInterval(function(){
+    if (state.route !== 'session' || !state.session || state.session.mode !== 'match') return;
+    var m = state.session.match;
+    if (!m || m.done) return;
+    var el = document.getElementById('matchtimer');
+    if (el) el.textContent = Math.round((Date.now() - m.startedAt) / 1000) + ' s';
+  }, 1000);
+  render();
+}
+
+/* ------------------------------ EXPORT (tests Node) ------------ */
+
+var __STUDYAPP_API__ = {
+  parseDeck: parseDeck, normalizeText: normalizeText, hashStr: hashStr, cardId: cardId, hashDeckId: hashDeckId,
+  nextState: nextState, buildQueue: buildQueue, cardStatus: cardStatus, isMastered: isMastered,
+  interleave: interleave, insertRequeue: insertRequeue, deckSegments: deckSegments,
+  compareAnswer: compareAnswer, stripAnswer: stripAnswer, levenshtein: levenshtein, buildMCQ: buildMCQ,
+  mapVerdict: mapVerdict, computeStats: computeStats, freshState: freshState, BOX_INTERVALS: BOX_INTERVALS,
+  EMBEDDED_DECKS: EMBEDDED_DECKS, SCHEMA_VERSION: SCHEMA_VERSION
+};
+if (typeof globalThis !== 'undefined') globalThis.__STUDYAPP_API__ = __STUDYAPP_API__;
+if (typeof module !== 'undefined' && module.exports) module.exports = __STUDYAPP_API__;
+
+if (IS_BROWSER) boot();
+</script>
+
+
+</body></html>
