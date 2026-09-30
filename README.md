@@ -1,7 +1,7 @@
 # StudyApp
 
 Application mono-fichier d'apprentissage de vocabulaire par **rappel actif** (Leitner + SM-2 allégé).
-Aucune installation, aucun serveur, aucune dépendance réseau.
+Aucune installation, aucun serveur, aucune dépendance réseau. Utilisez la pour vos révisions actives du quotidien !
 
 ## Ouvrir
 
